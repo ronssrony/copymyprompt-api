@@ -21,8 +21,16 @@ import { User } from './user/entities/user.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         synchronize: configService.get('NODE_ENV') === 'development',
-        logging: true,
+        logging: configService.get('NODE_ENV') === 'development',
         entities: [User],
+        // Add SSL configuration for production
+        ssl: configService.get('NODE_ENV') === 'production' ? {
+          rejectUnauthorized: false
+        } : false,
+        // Add connection options for production
+        extra: configService.get('NODE_ENV') === 'production' ? {
+          connectionLimit: 10,
+        } : {},
       }),
       inject: [ConfigService],
     }),
