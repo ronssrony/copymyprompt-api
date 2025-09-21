@@ -24,13 +24,19 @@ import { User } from './user/entities/user.entity';
         logging: configService.get('NODE_ENV') === 'development',
         entities: [User],
         // Add SSL configuration for production
-        ssl: configService.get('NODE_ENV') === 'production' ? {
-          rejectUnauthorized: false
-        } : false,
+        ssl:
+          configService.get('NODE_ENV') === 'production'
+            ? {
+                rejectUnauthorized: false,
+              }
+            : false,
         // Add connection options for production
-        extra: configService.get('NODE_ENV') === 'production' ? {
-          connectionLimit: 10,
-        } : {},
+        extra:
+          configService.get('NODE_ENV') === 'production'
+            ? {
+                connectionLimit: 10,
+              }
+            : {},
       }),
       inject: [ConfigService],
     }),
