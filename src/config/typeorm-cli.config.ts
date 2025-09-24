@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
 import { User } from '../user/entities/user.entity';
-import { InitialSchema1758471223836 } from '../migrations/1758471223836-initial_schema';
+import { InitialSchema1758471223836 } from '../migrations/intialSchema';
 
 config();
 
@@ -16,6 +16,7 @@ export default new DataSource({
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_NAME'),
   logging: configService.get<boolean>('DB_LOGGING'),
+  ssl: true,
   entities: [User],
   migrations: [InitialSchema1758471223836],
 });

@@ -12,8 +12,10 @@ async function bootstrap() {
     }),
   );
 
+  app.setGlobalPrefix('api');
+
   const port = process.env.PORT || 8080;
-  await app.listen(port, '0.0.0.0');
+  await app.listen(port);
 
   console.log(`Server listening on port ${port}`);
   console.log(`Environment PORT: ${process.env.PORT}`);

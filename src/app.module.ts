@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -23,12 +24,7 @@ import { User } from './user/entities/user.entity';
         logging: configService.get('NODE_ENV') === 'development',
         entities: [User],
         // Add SSL configuration for production
-        ssl:
-          configService.get('NODE_ENV') === 'production'
-            ? {
-                rejectUnauthorized: false,
-              }
-            : false,
+        ssl: true,
         // Add connection options for production
         extra:
           configService.get('NODE_ENV') === 'production'
@@ -40,6 +36,7 @@ import { User } from './user/entities/user.entity';
       inject: [ConfigService],
     }),
     UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
