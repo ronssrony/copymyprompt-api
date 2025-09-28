@@ -6,6 +6,12 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './categories/categories.module';
+import { PostsModule } from './posts/posts.module';
+import { LikesModule } from './likes/likes.module';
+import { SharesModule } from './shares/shares.module';
+import { CopiesModule } from './copies/copies.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -37,6 +43,12 @@ import { AuthModule } from './auth/auth.module';
     }),
     UserModule,
     AuthModule,
+    CategoriesModule,
+    PostsModule,
+    LikesModule,
+    SharesModule,
+    CopiesModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

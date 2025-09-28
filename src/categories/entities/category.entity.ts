@@ -3,33 +3,25 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn, OneToMany,
+  UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Post } from '../../posts/entities/post.entity';
 
-@Entity('users')
-export class User {
+@Entity('categories')
+export class Category {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, length: 50 })
-  username: string;
-
   @Column({ unique: true, length: 100 })
-  email: string;
-
-  @Column({ nullable: true, length: 500 })
-  image: string;
-
-  @Column({ length: 50 })
-  source: string;
-
-  @OneToMany(() => Post, (post) => post.user)
-  posts: Post[];
+  name: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Post, (post) => post.category)
+  posts: Post[];
 }
