@@ -10,6 +10,9 @@ import {
 import { User } from '../../user/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Like } from '../../likes/entities/like.entity';
+import { Share } from '../../shares/entities/share.entity';
+import { Copies } from '../../copies/entities/copy.entity';
+import { Rating } from '../../ratings/entities/rating.entity';
 
 @Entity('posts')
 export class Post {
@@ -43,14 +46,14 @@ export class Post {
   @OneToMany(() => Like, (like) => like.post)
   likes: Like[];
 
-  @OneToMany(() => PostShare, share => share.post)
-  shares: PostShare[];
+  @OneToMany(() => Share, (share) => share.post)
+  shares: Share[];
 
-  @OneToMany(() => PostCopy, copy => copy.post)
-  copies: PostCopy[];
+  @OneToMany(() => Copies, (copy) => copy.post)
+  copies: Copies[];
 
-  @OneToMany(() => PostRating, rating => rating.post)
-  ratings: PostRating[];
+  @OneToMany(() => Rating, (rating) => rating.post)
+  ratings: Rating[];
 
   @CreateDateColumn()
   createdAt: Date;
