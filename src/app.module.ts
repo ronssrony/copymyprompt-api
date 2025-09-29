@@ -12,6 +12,12 @@ import { LikesModule } from './likes/likes.module';
 import { SharesModule } from './shares/shares.module';
 import { CopiesModule } from './copies/copies.module';
 import { RatingsModule } from './ratings/ratings.module';
+import { Post } from './posts/entities/post.entity';
+import { Category } from './categories/entities/category.entity';
+import { Copies } from './copies/entities/copy.entity';
+import { Like } from './likes/entities/like.entity';
+import { Rating } from './ratings/entities/rating.entity';
+import { Share } from './shares/entities/share.entity';
 
 @Module({
   imports: [
@@ -28,7 +34,7 @@ import { RatingsModule } from './ratings/ratings.module';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         logging: configService.get('NODE_ENV') === 'development',
-        entities: [User],
+        entities: [User, Post, Category, Copies, Like, Rating, Share],
         // Add SSL configuration for production
         ssl: true,
         // Add connection options for production

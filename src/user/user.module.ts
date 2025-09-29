@@ -3,11 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
+import { Post } from '../posts/entities/post.entity';
 
 @Module({
   imports: [
     // This line registers the User entity and makes its repository available for injection
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User,Post]),
   ],
   controllers: [UserController],
   providers: [UserService],

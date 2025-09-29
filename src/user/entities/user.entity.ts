@@ -3,9 +3,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
-  UpdateDateColumn, OneToMany,
+  UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Post } from '../../posts/entities/post.entity';
+
 
 @Entity('users')
 export class User {

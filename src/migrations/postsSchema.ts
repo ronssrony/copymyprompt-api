@@ -44,8 +44,8 @@ export class PostsSchema1758475550000 implements MigrationInterface {
             default: 0,
           },
           { name: 'model', type: 'varchar', length: '100', isNullable: true },
-          { name: 'category_id', type: 'int', isNullable: true },
-          { name: 'user_id', type: 'int', isNullable: false },
+          { name: 'categoryId', type: 'int', isNullable: true }, // 👈 camelCase
+          { name: 'userId', type: 'int', isNullable: true }, // 👈 camelCase
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
           { name: 'updatedAt', type: 'timestamp', default: 'now()' },
         ],
@@ -54,13 +54,13 @@ export class PostsSchema1758475550000 implements MigrationInterface {
 
     await queryRunner.createForeignKeys('posts', [
       new TableForeignKey({
-        columnNames: ['category_id'],
+        columnNames: ['categoryId'],
         referencedTableName: 'categories',
         referencedColumnNames: ['id'],
         onDelete: 'SET NULL',
       }),
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
@@ -73,22 +73,22 @@ export class PostsSchema1758475550000 implements MigrationInterface {
         name: 'post_likes',
         columns: [
           { name: 'id', type: 'serial', isPrimary: true },
-          { name: 'post_id', type: 'int', isNullable: false },
-          { name: 'user_id', type: 'int', isNullable: false },
+          { name: 'postId', type: 'int', isNullable: false }, // 👈 camelCase
+          { name: 'userId', type: 'int', isNullable: false }, // 👈 camelCase
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
         ],
-        uniques: [new TableUnique({ columnNames: ['post_id', 'user_id'] })],
+        uniques: [new TableUnique({ columnNames: ['postId', 'userId'] })],
       }),
     );
     await queryRunner.createForeignKeys('post_likes', [
       new TableForeignKey({
-        columnNames: ['post_id'],
+        columnNames: ['postId'],
         referencedTableName: 'posts',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
@@ -101,22 +101,22 @@ export class PostsSchema1758475550000 implements MigrationInterface {
         name: 'post_shares',
         columns: [
           { name: 'id', type: 'serial', isPrimary: true },
-          { name: 'post_id', type: 'int', isNullable: false },
-          { name: 'user_id', type: 'int', isNullable: false },
+          { name: 'postId', type: 'int', isNullable: false }, // 👈
+          { name: 'userId', type: 'int', isNullable: false }, // 👈
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
         ],
-        uniques: [new TableUnique({ columnNames: ['post_id', 'user_id'] })],
+        uniques: [new TableUnique({ columnNames: ['postId', 'userId'] })],
       }),
     );
     await queryRunner.createForeignKeys('post_shares', [
       new TableForeignKey({
-        columnNames: ['post_id'],
+        columnNames: ['postId'],
         referencedTableName: 'posts',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
@@ -129,22 +129,22 @@ export class PostsSchema1758475550000 implements MigrationInterface {
         name: 'post_copies',
         columns: [
           { name: 'id', type: 'serial', isPrimary: true },
-          { name: 'post_id', type: 'int', isNullable: false },
-          { name: 'user_id', type: 'int', isNullable: false },
+          { name: 'postId', type: 'int', isNullable: false }, // 👈
+          { name: 'userId', type: 'int', isNullable: false }, // 👈
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
         ],
-        uniques: [new TableUnique({ columnNames: ['post_id', 'user_id'] })],
+        uniques: [new TableUnique({ columnNames: ['postId', 'userId'] })],
       }),
     );
     await queryRunner.createForeignKeys('post_copies', [
       new TableForeignKey({
-        columnNames: ['post_id'],
+        columnNames: ['postId'],
         referencedTableName: 'posts',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
@@ -157,24 +157,24 @@ export class PostsSchema1758475550000 implements MigrationInterface {
         name: 'post_ratings',
         columns: [
           { name: 'id', type: 'serial', isPrimary: true },
-          { name: 'post_id', type: 'int', isNullable: false },
-          { name: 'user_id', type: 'int', isNullable: false },
+          { name: 'postId', type: 'int', isNullable: false }, // 👈
+          { name: 'userId', type: 'int', isNullable: false }, // 👈
           { name: 'value', type: 'int', isNullable: false },
           { name: 'body', type: 'text', isNullable: true },
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
         ],
-        uniques: [new TableUnique({ columnNames: ['post_id', 'user_id'] })],
+        uniques: [new TableUnique({ columnNames: ['postId', 'userId'] })],
       }),
     );
     await queryRunner.createForeignKeys('post_ratings', [
       new TableForeignKey({
-        columnNames: ['post_id'],
+        columnNames: ['postId'],
         referencedTableName: 'posts',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),
       new TableForeignKey({
-        columnNames: ['user_id'],
+        columnNames: ['userId'],
         referencedTableName: 'users',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',

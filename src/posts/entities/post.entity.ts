@@ -7,25 +7,25 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { User } from '../../user/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Like } from '../../likes/entities/like.entity';
 import { Share } from '../../shares/entities/share.entity';
 import { Copies } from '../../copies/entities/copy.entity';
 import { Rating } from '../../ratings/entities/rating.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('posts')
 export class Post {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text' })
   prompt: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text' })
   image: string;
 
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
