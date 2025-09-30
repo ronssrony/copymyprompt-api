@@ -15,8 +15,12 @@ export class PostsService {
     return this.postRepository.save(post);
   }
 
-  findAll() {
-    return `This action returns all posts`;
+  async findAll() {
+    const posts = await this.postRepository.find({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
+    return { data: posts };
   }
 
   findOne(id: number) {
