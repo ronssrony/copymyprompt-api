@@ -18,6 +18,7 @@ import { Copies } from './copies/entities/copy.entity';
 import { Like } from './likes/entities/like.entity';
 import { Rating } from './ratings/entities/rating.entity';
 import { Share } from './shares/entities/share.entity';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { Share } from './shares/entities/share.entity';
     SharesModule,
     CopiesModule,
     RatingsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
