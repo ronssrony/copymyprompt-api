@@ -19,11 +19,23 @@ import { Like } from './likes/entities/like.entity';
 import { Rating } from './ratings/entities/rating.entity';
 import { Share } from './shares/entities/share.entity';
 import { UploadModule } from './upload/upload.module';
+import configuration from './config/configuration';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: '.env',
       isGlobal: true,
+      load: [configuration],
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('jwt.secret'),
+      }),
+      global: true,
+      inject: [ConfigService],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

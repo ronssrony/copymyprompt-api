@@ -6,7 +6,6 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
-  JoinColumn,
 } from 'typeorm';
 import { Category } from '../../categories/entities/category.entity';
 import { Like } from '../../likes/entities/like.entity';
@@ -41,14 +40,25 @@ export class Post {
   })
   category: Category;
 
-  @Column({ type: 'number', nullable: true })
+  @Column({ type: 'int' })
   categoryId: number;
 
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ type: 'number', nullable: true })
+  @Column({ type: 'int' })
   userId: number;
+
+  @Column({ type: 'int', default: 0 })
+  likesCount: number;
+  @Column({ type: 'int', default: 0 })
+  sharesCount: number;
+  @Column({ type: 'int', default: 0 })
+  copiesCount: number;
+  @Column({ type: 'int', default: 0 })
+  ratingsCount: number;
+  @Column({ type: 'int', default: 0 })
+  ratingsValue: number;
 
   @OneToMany(() => Like, (like) => like.post)
   likes: Like[];

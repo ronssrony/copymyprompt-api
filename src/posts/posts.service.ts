@@ -23,6 +23,36 @@ export class PostsService {
     return { data: posts };
   }
 
+  async myPost(userId: string) {
+    const posts = await this.postRepository.find({
+      where: { user: { id: parseInt(userId) } },
+      relations: ['user', 'category'],
+      select: {
+        id: true,
+        title: true,
+        prompt: true,
+        image: true,
+        price: true,
+        model: true,
+        likesCount: true,
+        sharesCount: true,
+        copiesCount: true,
+        ratingsCount: true,
+        ratingsValue: true,
+        createdAt: true,
+        user: {
+          username: true,
+          image: true,
+        },
+        category: {
+          name: true,
+        },
+      },
+      order: { createdAt: 'DESC' },
+    });
+    return { data: posts };
+  }
+
   findOne(id: number) {
     return `This action returns a #${id} post`;
   }

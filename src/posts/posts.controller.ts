@@ -6,24 +6,35 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AuthGuard } from '../guards/auth.guard';
+import { UserId } from '../decoretors/userId.decorator';
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createPostDto: CreatePostDto) {
-    console.log(createPostDto);
+  create(@UserId() userId: string, @Body() createPostDto: CreatePostDto) {
+    createPostDto.userId = parseInt(userId);
     return this.postsService.create(createPostDto);
   }
 
   @Get()
   findAll() {
     return this.postsService.findAll();
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('my-posts')
+  myPost(@UserId() userId: string) {
+    console.log('userId', userId);
+    return this.postsService.myPost(userId);
   }
 
   @Get(':id')

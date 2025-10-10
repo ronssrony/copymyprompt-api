@@ -46,6 +46,11 @@ export class PostsSchema1758475550000 implements MigrationInterface {
           { name: 'model', type: 'varchar', length: '100', isNullable: true },
           { name: 'categoryId', type: 'int', isNullable: true }, // 👈 camelCase
           { name: 'userId', type: 'int', isNullable: true }, // 👈 camelCase
+          { name: 'likesCount', type: 'int', default: 0 },
+          { name: 'sharesCount', type: 'int', default: 0 },
+          { name: 'copiesCount', type: 'int', default: 0 },
+          { name: 'ratingsCount', type: 'int', default: 0 },
+          { name: 'ratingsValue', type: 'int', default: 0 },
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
           { name: 'updatedAt', type: 'timestamp', default: 'now()' },
         ],
