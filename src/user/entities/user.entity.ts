@@ -8,7 +8,6 @@ import {
 } from 'typeorm';
 import { Post } from '../../posts/entities/post.entity';
 
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()

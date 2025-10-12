@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -50,5 +51,11 @@ export class PostsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.postsService.remove(+id);
+  }
+
+  @Get('prompts/:type')
+  async getPrompts(@Param('type') type: string) {
+    console.log('type', type);
+    return this.postsService.getPromptsByType(type);
   }
 }
