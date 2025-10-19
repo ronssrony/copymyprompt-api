@@ -65,6 +65,16 @@ export class PostsService {
     return { data: posts };
   }
 
+  async getPostsByCategory(categoryId: number) {
+    const posts = await this.postRepository.find({
+      where: { category: { id: categoryId } },
+      relations: ['user', 'category'],
+      select: this.selectFields,
+      order: { createdAt: 'DESC' },
+    });
+    return { data: posts };
+  }
+
   async getPromptsByType(type: string) {
     let where = {};
     let order = {};

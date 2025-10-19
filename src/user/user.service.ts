@@ -31,7 +31,7 @@ export class UserService {
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -66,7 +66,8 @@ export class UserService {
       await this.userRepository.update(id, updateUserDto);
       return await this.findOne(id);
     } catch (error) {
-      if (error.code === '23505') { // Unique constraint violation
+      if (error.code === '23505') {
+        // Unique constraint violation
         throw new ConflictException('Username or email already exists');
       }
       throw error;

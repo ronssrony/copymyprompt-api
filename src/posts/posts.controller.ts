@@ -38,6 +38,11 @@ export class PostsController {
     return this.postsService.myPost(userId);
   }
 
+  @Get('category/:id')
+  getPostsByCategory(@Param('id') id: string) {
+    return this.postsService.getPostsByCategory(+id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(+id);

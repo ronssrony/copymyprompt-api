@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CopiesService } from './copies.service';
 import { CreateCopyDto } from './dto/create-copy.dto';
 import { UpdateCopyDto } from './dto/update-copy.dto';

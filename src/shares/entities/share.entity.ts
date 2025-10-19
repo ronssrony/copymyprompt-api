@@ -8,7 +8,6 @@ import {
 import { Post } from '../../posts/entities/post.entity';
 import { User } from '../../user/entities/user.entity';
 
-
 @Entity('post_shares')
 @Unique(['post', 'user'])
 export class Share {

@@ -23,7 +23,6 @@ export class AuthGuard implements CanActivate {
       const payload: { userId: string } = await this.jwtService.verifyAsync(
         token,
         {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
           secret: configuration().jwt.secret,
         },
       );
