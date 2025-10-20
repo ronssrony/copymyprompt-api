@@ -3,40 +3,57 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { SharesService } from './shares.service';
 import { CreateShareDto } from './dto/create-share.dto';
-import { UpdateShareDto } from './dto/update-share.dto';
+import { AuthGuard } from '../guards/auth.guard';
+import { UserId } from '../decoretors/userId.decorator';
 
 @Controller('shares')
 export class SharesController {
   constructor(private readonly sharesService: SharesService) {}
 
+  // POST /shares - Share a post (protected)
+  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createShareDto: CreateShareDto) {
+  create(@Body() createShareDto: CreateShareDto, @UserId() userId: string) {
+    createShareDto.userId = parseInt(userId);
     return this.sharesService.create(createShareDto);
   }
 
+  // GET /shares - Get all shares (admin)
   @Get()
   findAll() {
     return this.sharesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sharesService.findOne(+id);
+  // GET /shares/post/:postId - Get all shares for a post
+  @Get('post/:postId')
+  findByPost(@Param('postId') postId: string) {
+    return this.sharesService.findByPost(+postId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateShareDto: UpdateShareDto) {
-    return this.sharesService.update(+id, updateShareDto);
+  // GET /shares/my-shares - Get user's shares (protected)
+  @UseGuards(AuthGuard)
+  @Get('my-shares')
+  findByUser(@UserId() userId: string) {
+    return this.sharesService.findByUser(parseInt(userId));
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sharesService.remove(+id);
+  // GET /shares/check/:postId - Check if user shared a post (protected)
+  @UseGuards(AuthGuard)
+  @Get('check/:postId')
+  checkUserShare(@Param('postId') postId: string, @UserId() userId: string) {
+    return this.sharesService.checkUserShare(+postId, parseInt(userId));
+  }
+
+  // DELETE /shares/:postId - Remove a share (protected)
+  @UseGuards(AuthGuard)
+  @Delete(':postId')
+  remove(@Param('postId') postId: string, @UserId() userId: string) {
+    return this.sharesService.remove(+postId, parseInt(userId));
   }
 }
