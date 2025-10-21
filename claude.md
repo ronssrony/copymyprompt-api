@@ -1204,10 +1204,17 @@ Get top creators based on different criteria. (Added: 2025-10-21)
 #### GET /users/:userId/posts
 Get user profile with all their posts. (Added: 2025-10-21)
 
-**Query Parameters (optional):**
-- `currentUserId`: If provided, includes whether the current user is following this profile
+**Headers (optional):**
+```
+Authorization: Bearer <token>
+```
 
-**Response:**
+**Notes:**
+- If JWT token is provided, the response includes `isFollowing` property
+- If no token is provided, the endpoint still works but without `isFollowing`
+- This allows both authenticated and unauthenticated users to view profiles
+
+**Response (authenticated):**
 ```json
 {
   "data": {
@@ -1234,6 +1241,49 @@ Get user profile with all their posts. (Added: 2025-10-21)
         "ratingsCount": 10,
         "ratingsValue": 48,
         "createdAt": "2024-01-01T00:00:00.000Z",
+        "user": {
+          "username": "john_doe",
+          "image": "https://..."
+        },
+        "category": {
+          "name": "Marketing"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Response (unauthenticated - no isFollowing):**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "john_doe",
+    "image": "https://...",
+    "bio": "AI Content Creator",
+    "followersCount": 243,
+    "followingCount": 152,
+    "postsCount": 5,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "posts": [
+      {
+        "id": 1,
+        "title": "Marketing Prompt",
+        "prompt": "Create a compelling...",
+        "image": "https://...",
+        "price": 0,
+        "model": "gpt-4",
+        "likesCount": 42,
+        "sharesCount": 15,
+        "copiesCount": 28,
+        "ratingsCount": 10,
+        "ratingsValue": 48,
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "user": {
+          "username": "john_doe",
+          "image": "https://..."
+        },
         "category": {
           "name": "Marketing"
         }
@@ -1620,14 +1670,18 @@ const UserProfileWithPosts = ({ userId }) => {
   useEffect(() => {
     const fetchProfileWithPosts = async () => {
       try {
-        // Get current user ID from auth state (if logged in)
-        const currentUserId = getCurrentUserId(); // Your auth function
+        // The endpoint automatically uses JWT token if available
+        const token = localStorage.getItem('token');
 
-        const url = currentUserId
-          ? `http://localhost:3000/users/${userId}/posts?currentUserId=${currentUserId}`
-          : `http://localhost:3000/users/${userId}/posts`;
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
 
-        const response = await fetch(url);
+        const response = await fetch(
+          `http://localhost:3000/users/${userId}/posts`,
+          { headers }
+        );
         const data = await response.json();
         setProfileData(data.data);
       } catch (error) {

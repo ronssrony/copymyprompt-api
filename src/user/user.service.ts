@@ -284,35 +284,65 @@ export class UserService {
   // Get top creators based on criteria
   // Added: 2025-10-21
   async getTopCreators(sortBy: 'posts' | 'followers' | 'copies' = 'posts') {
-    let queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.posts', 'post')
-      .select([
-        'user.id',
-        'user.username',
-        'user.image',
-        'user.bio',
-        'user.followersCount',
-        'user.followingCount',
-      ]);
+    let users: User[] = [];
 
     if (sortBy === 'posts') {
-      // Sort by number of posts
-      queryBuilder = queryBuilder
-        .loadRelationCountAndMap('user.postsCount', 'user.posts')
-        .orderBy('user.postsCount', 'DESC');
+      // Sort by number of posts using a subquery
+      const result = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.posts', 'post')
+        .select([
+          'user.id',
+          'user.username',
+          'user.image',
+          'user.bio',
+          'user.followersCount',
+          'user.followingCount',
+        ])
+        .addSelect('COUNT(post.id)', 'postsCount')
+        .groupBy('user.id')
+        .orderBy('"postsCount"', 'DESC')
+        .limit(10)
+        .getRawAndEntities();
+
+      users = result.entities;
     } else if (sortBy === 'followers') {
       // Sort by followers count
-      queryBuilder = queryBuilder.orderBy('user.followersCount', 'DESC');
-    } else if (sortBy === 'copies') {
+      users = await this.userRepository
+        .createQueryBuilder('user')
+        .select([
+          'user.id',
+          'user.username',
+          'user.image',
+          'user.bio',
+          'user.followersCount',
+          'user.followingCount',
+        ])
+        .orderBy('user.followersCount', 'DESC')
+        .limit(10)
+        .getMany();
+    } else {
+      // sortBy === 'copies'
       // Sort by total copies count (sum of all posts' copies)
-      queryBuilder = queryBuilder
-        .addSelect('SUM(post.copiesCount)', 'totalCopies')
+      const result = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.posts', 'post')
+        .select([
+          'user.id',
+          'user.username',
+          'user.image',
+          'user.bio',
+          'user.followersCount',
+          'user.followingCount',
+        ])
+        .addSelect('COALESCE(SUM(post.copiesCount), 0)', 'totalCopies')
         .groupBy('user.id')
-        .orderBy('totalCopies', 'DESC');
-    }
+        .orderBy('"totalCopies"', 'DESC')
+        .limit(10)
+        .getRawAndEntities();
 
-    const users = await queryBuilder.take(10).getMany();
+      users = result.entities;
+    }
 
     // Calculate postsCount and totalCopies for each user
     const topCreators = await Promise.all(
@@ -344,13 +374,6 @@ export class UserService {
       }),
     );
 
-    // Sort based on the criteria
-    if (sortBy === 'posts') {
-      topCreators.sort((a, b) => b.postsCount - a.postsCount);
-    } else if (sortBy === 'copies') {
-      topCreators.sort((a, b) => b.totalCopies - a.totalCopies);
-    }
-
     return { data: topCreators };
   }
 
@@ -380,6 +403,10 @@ export class UserService {
       ratingsCount: post.ratingsCount,
       ratingsValue: post.ratingsValue,
       createdAt: post.createdAt,
+      user: {
+        username: post.user.username,
+        image: post.user.image,
+      },
       category: {
         name: post.category.name,
       },
@@ -398,16 +425,28 @@ export class UserService {
     };
 
     // If currentUserId is provided, check if the current user is following this profile
-    if (currentUserId && currentUserId !== userId) {
-      const followStatus = await this.checkFollowing(currentUserId, userId);
-      return {
-        data: {
-          ...profile,
-          isFollowing: followStatus.data.isFollowing,
-        },
-      };
+    if (currentUserId) {
+      if (currentUserId === userId) {
+        // Viewing own profile
+        return {
+          data: {
+            ...profile,
+            isFollowing: false,
+          },
+        };
+      } else {
+        // Viewing another user's profile
+        const followStatus = await this.checkFollowing(currentUserId, userId);
+        return {
+          data: {
+            ...profile,
+            isFollowing: followStatus.data.isFollowing,
+          },
+        };
+      }
     }
 
+    // No currentUserId provided (not logged in)
     return { data: profile };
   }
 }

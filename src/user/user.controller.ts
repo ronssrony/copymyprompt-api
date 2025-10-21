@@ -9,17 +9,24 @@ import {
   Query,
   Put,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import { JwtService } from '@nestjs/jwt';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { UserId } from '../decoretors/userId.decorator';
+import configuration from '../config/configuration';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -140,13 +147,32 @@ export class UserController {
   // GET /users/:userId/posts - Get user profile with all their posts
   // Added: 2025-10-21
   @Get(':userId/posts')
-  getProfileWithPosts(
+  async getProfileWithPosts(
     @Param('userId', ParseIntPipe) userId: number,
-    @Query('currentUserId') currentUserId?: string,
+    @Req() request: Request,
   ) {
-    const currentUserIdNum = currentUserId
-      ? parseInt(currentUserId)
-      : undefined;
-    return this.userService.getProfileWithPosts(userId, currentUserIdNum);
+    // Try to extract userId from JWT token if present (optional authentication)
+    let currentUserId: number | undefined;
+
+    const token = this.extractTokenFromHeader(request);
+    if (token) {
+      try {
+        const payload: { userId: string } = await this.jwtService.verifyAsync(
+          token,
+          { secret: configuration().jwt.secret },
+        );
+        currentUserId = parseInt(payload.userId);
+      } catch {
+        // Token invalid or expired, continue without currentUserId
+        currentUserId = undefined;
+      }
+    }
+
+    return this.userService.getProfileWithPosts(userId, currentUserId);
+  }
+
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
   }
 }
