@@ -984,6 +984,735 @@ Users can only perform each action once per post:
 
 ---
 
+<!-- API Updates - 2025-10-21 -->
+
+### 8. User Following & Profile (Added: 2025-10-21)
+
+#### POST /users/follow/:userId
+Follow a user. **[Protected]**
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "follower": { "id": 1 },
+    "following": { "id": 2 },
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  "message": "User followed successfully"
+}
+```
+
+**Error (409 Conflict):**
+```json
+{
+  "statusCode": 409,
+  "message": "You are already following this user"
+}
+```
+
+#### DELETE /users/unfollow/:userId
+Unfollow a user. **[Protected]**
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "message": "User unfollowed successfully"
+}
+```
+
+**Error (404 Not Found):**
+```json
+{
+  "statusCode": 404,
+  "message": "You are not following this user"
+}
+```
+
+#### GET /users/following
+Get users the current user is following. **[Protected]**
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 2,
+      "username": "jane_doe",
+      "image": "https://...",
+      "bio": "AI enthusiast",
+      "followersCount": 150,
+      "followedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### GET /users/followers
+Get current user's followers. **[Protected]**
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 3,
+      "username": "john_smith",
+      "image": "https://...",
+      "bio": "Prompt creator",
+      "followersCount": 200,
+      "followedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### GET /users/check-following/:userId
+Check if current user is following another user. **[Protected]**
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "isFollowing": true,
+    "follow": { /* follow object or null */ }
+  }
+}
+```
+
+#### GET /users/profile/:userId
+Get user profile information.
+
+**Query Parameters (optional):**
+- `currentUserId`: If provided, includes whether the current user is following this profile
+
+**Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "john_doe",
+    "image": "https://...",
+    "bio": "AI Content Creator & Digital Artist",
+    "followersCount": 243,
+    "followingCount": 152,
+    "postsCount": 5,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "isFollowing": false
+  }
+}
+```
+
+#### PUT /users/profile
+Update current user's profile. **[Protected]** (Added: 2025-10-21)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "username": "string (optional, max 50 chars)",
+  "image": "string (optional, max 500 chars)",
+  "bio": "string (optional)"
+}
+```
+
+**Note:** Email cannot be updated through this endpoint.
+
+**Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "updated_username",
+    "email": "user@example.com",
+    "image": "https://new-image-url.com",
+    "bio": "Updated bio text",
+    "followersCount": 243,
+    "followingCount": 152
+  },
+  "message": "Profile updated successfully"
+}
+```
+
+**Error (409 Conflict):**
+```json
+{
+  "statusCode": 409,
+  "message": "Username already exists"
+}
+```
+
+#### GET /users/top-creators
+Get top creators based on different criteria. (Added: 2025-10-21)
+
+**Query Parameters:**
+- `sortBy`: `posts` (default), `followers`, or `copies`
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "username": "top_creator",
+      "image": "https://...",
+      "bio": "Professional prompt creator",
+      "followersCount": 1500,
+      "followingCount": 200,
+      "postsCount": 125,
+      "totalCopies": 3420
+    }
+  ]
+}
+```
+
+**Usage Examples:**
+- `GET /users/top-creators` - Returns top 10 creators by post count
+- `GET /users/top-creators?sortBy=followers` - Returns top 10 creators by followers
+- `GET /users/top-creators?sortBy=copies` - Returns top 10 creators by total copies
+
+#### GET /users/:userId/posts
+Get user profile with all their posts. (Added: 2025-10-21)
+
+**Query Parameters (optional):**
+- `currentUserId`: If provided, includes whether the current user is following this profile
+
+**Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "username": "john_doe",
+    "image": "https://...",
+    "bio": "AI Content Creator",
+    "followersCount": 243,
+    "followingCount": 152,
+    "postsCount": 5,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "isFollowing": false,
+    "posts": [
+      {
+        "id": 1,
+        "title": "Marketing Prompt",
+        "prompt": "Create a compelling...",
+        "image": "https://...",
+        "price": 0,
+        "model": "gpt-4",
+        "likesCount": 42,
+        "sharesCount": 15,
+        "copiesCount": 28,
+        "ratingsCount": 10,
+        "ratingsValue": 48,
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "category": {
+          "name": "Marketing"
+        }
+      }
+    ]
+  }
+}
+```
+
+#### GET /posts/liked-posts
+Get posts liked by the current user. **[Protected]** (Added: 2025-10-21)
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Amazing Marketing Prompt",
+      "prompt": "Create a compelling...",
+      "image": "https://...",
+      "price": 0,
+      "model": "gpt-4",
+      "likesCount": 42,
+      "sharesCount": 15,
+      "copiesCount": 28,
+      "ratingsCount": 10,
+      "ratingsValue": 48,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "user": {
+        "username": "creator_name",
+        "image": "https://..."
+      },
+      "category": {
+        "name": "Marketing"
+      },
+      "likedAt": "2024-01-05T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### Frontend Implementation Examples (Updated: 2025-10-21)
+
+#### Example: Follow/Unfollow a User
+
+```javascript
+const FollowButton = ({ userId, initialFollowing = false }) => {
+  const [isFollowing, setIsFollowing] = useState(initialFollowing);
+  const [loading, setLoading] = useState(false);
+
+  const toggleFollow = async () => {
+    setLoading(true);
+    try {
+      if (isFollowing) {
+        // Unfollow
+        await apiClient.delete(`/users/unfollow/${userId}`);
+        setIsFollowing(false);
+      } else {
+        // Follow
+        await apiClient.post(`/users/follow/${userId}`, {});
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      console.error('Error toggling follow:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button onClick={toggleFollow} disabled={loading}>
+      {isFollowing ? 'Unfollow' : 'Follow'}
+    </button>
+  );
+};
+```
+
+#### Example: Display User Profile
+
+```javascript
+const UserProfile = ({ userId }) => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // Get current user ID from auth state
+        const currentUserId = getCurrentUserId(); // Your auth function
+
+        const response = await fetch(
+          `http://localhost:3000/users/profile/${userId}?currentUserId=${currentUserId}`
+        );
+        const data = await response.json();
+        setProfile(data.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="profile-card">
+      <img src={profile.image} alt={profile.username} />
+      <h2>{profile.username}</h2>
+      <p>{profile.bio}</p>
+
+      <div className="stats">
+        <div>
+          <strong>{profile.postsCount}</strong>
+          <span>Posts</span>
+        </div>
+        <div>
+          <strong>{profile.followersCount}</strong>
+          <span>Followers</span>
+        </div>
+        <div>
+          <strong>{profile.followingCount}</strong>
+          <span>Following</span>
+        </div>
+      </div>
+
+      <FollowButton userId={userId} initialFollowing={profile.isFollowing} />
+    </div>
+  );
+};
+```
+
+#### Example: Display Liked Posts
+
+```javascript
+const LikedPosts = () => {
+  const [likedPosts, setLikedPosts] = useState([]);
+
+  useEffect(() => {
+    const fetchLikedPosts = async () => {
+      const response = await apiClient.get('/posts/liked-posts');
+      setLikedPosts(response.data);
+    };
+
+    fetchLikedPosts();
+  }, []);
+
+  return (
+    <div className="liked-posts">
+      <h2>Posts You've Liked</h2>
+      {likedPosts.map(post => (
+        <PostCard
+          key={post.id}
+          post={post}
+          likedAt={post.likedAt}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+#### Example: Display Following/Followers Lists
+
+```javascript
+const FollowLists = () => {
+  const [following, setFollowing] = useState([]);
+  const [followers, setFollowers] = useState([]);
+  const [activeTab, setActiveTab] = useState('followers');
+
+  useEffect(() => {
+    const fetchFollowData = async () => {
+      const [followingRes, followersRes] = await Promise.all([
+        apiClient.get('/users/following'),
+        apiClient.get('/users/followers')
+      ]);
+
+      setFollowing(followingRes.data);
+      setFollowers(followersRes.data);
+    };
+
+    fetchFollowData();
+  }, []);
+
+  return (
+    <div>
+      <div className="tabs">
+        <button onClick={() => setActiveTab('followers')}>
+          Followers ({followers.length})
+        </button>
+        <button onClick={() => setActiveTab('following')}>
+          Following ({following.length})
+        </button>
+      </div>
+
+      <div className="user-list">
+        {(activeTab === 'followers' ? followers : following).map(user => (
+          <div key={user.id} className="user-item">
+            <img src={user.image} alt={user.username} />
+            <div>
+              <h4>{user.username}</h4>
+              <p>{user.bio}</p>
+              <small>{user.followersCount} followers</small>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+```
+
+#### Example: Update User Profile
+
+```javascript
+const ProfileEditForm = () => {
+  const [profile, setProfile] = useState({
+    username: '',
+    bio: '',
+    image: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.put('/users/profile', {
+        username: profile.username,
+        bio: profile.bio,
+        image: profile.image
+      });
+
+      alert('Profile updated successfully!');
+      console.log(response.data);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError('Username already exists');
+      } else {
+        setError('Failed to update profile');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>Username</label>
+        <input
+          type="text"
+          value={profile.username}
+          onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+          maxLength={50}
+        />
+      </div>
+
+      <div>
+        <label>Profile Image URL</label>
+        <input
+          type="text"
+          value={profile.image}
+          onChange={(e) => setProfile({ ...profile, image: e.target.value })}
+          maxLength={500}
+        />
+      </div>
+
+      <div>
+        <label>Bio</label>
+        <textarea
+          value={profile.bio}
+          onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+          rows={4}
+        />
+      </div>
+
+      {error && <p className="error">{error}</p>}
+
+      <button type="submit" disabled={loading}>
+        {loading ? 'Updating...' : 'Update Profile'}
+      </button>
+    </form>
+  );
+};
+```
+
+#### Example: Display Top Creators
+
+```javascript
+const TopCreators = () => {
+  const [creators, setCreators] = useState([]);
+  const [sortBy, setSortBy] = useState('posts');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTopCreators = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:3000/users/top-creators?sortBy=${sortBy}`
+        );
+        const data = await response.json();
+        setCreators(data.data);
+      } catch (error) {
+        console.error('Error fetching top creators:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopCreators();
+  }, [sortBy]);
+
+  return (
+    <div className="top-creators">
+      <h2>Top Creators</h2>
+
+      <div className="sort-buttons">
+        <button
+          onClick={() => setSortBy('posts')}
+          className={sortBy === 'posts' ? 'active' : ''}
+        >
+          Most Posts
+        </button>
+        <button
+          onClick={() => setSortBy('followers')}
+          className={sortBy === 'followers' ? 'active' : ''}
+        >
+          Most Followers
+        </button>
+        <button
+          onClick={() => setSortBy('copies')}
+          className={sortBy === 'copies' ? 'active' : ''}
+        >
+          Most Copies
+        </button>
+      </div>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="creators-list">
+          {creators.map((creator, index) => (
+            <div key={creator.id} className="creator-card">
+              <span className="rank">#{index + 1}</span>
+              <img src={creator.image} alt={creator.username} />
+              <h3>{creator.username}</h3>
+              <p>{creator.bio}</p>
+              <div className="stats">
+                <span>{creator.postsCount} posts</span>
+                <span>{creator.followersCount} followers</span>
+                <span>{creator.totalCopies} copies</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+#### Example: View User Profile with Posts
+
+```javascript
+const UserProfileWithPosts = ({ userId }) => {
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfileWithPosts = async () => {
+      try {
+        // Get current user ID from auth state (if logged in)
+        const currentUserId = getCurrentUserId(); // Your auth function
+
+        const url = currentUserId
+          ? `http://localhost:3000/users/${userId}/posts?currentUserId=${currentUserId}`
+          : `http://localhost:3000/users/${userId}/posts`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+        setProfileData(data.data);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileWithPosts();
+  }, [userId]);
+
+  if (loading) return <div>Loading...</div>;
+
+  const averageRating = (post) =>
+    post.ratingsCount > 0
+      ? (post.ratingsValue / post.ratingsCount).toFixed(1)
+      : 0;
+
+  return (
+    <div className="profile-page">
+      {/* Profile Header */}
+      <div className="profile-header">
+        <img src={profileData.image} alt={profileData.username} />
+        <h1>{profileData.username}</h1>
+        <p className="bio">{profileData.bio}</p>
+
+        <div className="profile-stats">
+          <div>
+            <strong>{profileData.postsCount}</strong>
+            <span>Posts</span>
+          </div>
+          <div>
+            <strong>{profileData.followersCount}</strong>
+            <span>Followers</span>
+          </div>
+          <div>
+            <strong>{profileData.followingCount}</strong>
+            <span>Following</span>
+          </div>
+        </div>
+
+        {profileData.isFollowing !== undefined && (
+          <FollowButton
+            userId={userId}
+            initialFollowing={profileData.isFollowing}
+          />
+        )}
+      </div>
+
+      {/* User's Posts */}
+      <div className="user-posts">
+        <h2>Posts by {profileData.username}</h2>
+        <div className="posts-grid">
+          {profileData.posts.map((post) => (
+            <div key={post.id} className="post-card">
+              <img src={post.image} alt={post.title} />
+              <h3>{post.title}</h3>
+              <p className="prompt-preview">{post.prompt.substring(0, 100)}...</p>
+              <span className="category">{post.category.name}</span>
+
+              <div className="post-stats">
+                <span>❤️ {post.likesCount}</span>
+                <span>📋 {post.copiesCount}</span>
+                <span>⭐ {averageRating(post)}</span>
+              </div>
+
+              <small>
+                {new Date(post.createdAt).toLocaleDateString()}
+              </small>
+            </div>
+          ))}
+        </div>
+
+        {profileData.posts.length === 0 && (
+          <p>This user hasn't posted any prompts yet.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+```
+
+---
+
 ## Summary of Endpoints
 
 | Method | Endpoint | Auth | Description |
@@ -993,6 +1722,7 @@ Users can only perform each action once per post:
 | GET | /posts | ❌ | Get all posts |
 | GET | /posts/:id | ❌ | Get single post |
 | GET | /posts/my-posts | ✅ | Get user's posts |
+| GET | /posts/liked-posts | ✅ | Get user's liked posts |
 | GET | /posts/category/:id | ❌ | Get posts by category |
 | GET | /posts/prompts/:type | ❌ | Get featured/trending/thisWeek |
 | **Likes** |
@@ -1026,6 +1756,16 @@ Users can only perform each action once per post:
 | DELETE | /ratings/:postId | ✅ | Remove rating |
 | **Categories** |
 | GET | /categories | ❌ | Get all categories |
+| **Users & Following** |
+| POST | /users/follow/:userId | ✅ | Follow a user |
+| DELETE | /users/unfollow/:userId | ✅ | Unfollow a user |
+| GET | /users/following | ✅ | Get users you're following |
+| GET | /users/followers | ✅ | Get your followers |
+| GET | /users/check-following/:userId | ✅ | Check if following user |
+| GET | /users/profile/:userId | ❌ | Get user profile |
+| PUT | /users/profile | ✅ | Update current user's profile |
+| GET | /users/top-creators | ❌ | Get top creators (by posts/followers/copies) |
+| GET | /users/:userId/posts | ❌ | Get user profile with all posts |
 
 ---
 

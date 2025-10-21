@@ -33,8 +33,14 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Get('my-posts')
   myPost(@UserId() userId: string) {
-    console.log('userId', userId);
+
     return this.postsService.myPost(userId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('liked-posts')
+  getLikedPosts(@UserId() userId: string) {
+    return this.postsService.getLikedPosts(userId);
   }
 
   @Get('category/:id')
@@ -59,7 +65,7 @@ export class PostsController {
 
   @Get('prompts/:type')
   async getPrompts(@Param('type') type: string) {
-    console.log('type', type);
+
     return this.postsService.getPromptsByType(type);
   }
 }

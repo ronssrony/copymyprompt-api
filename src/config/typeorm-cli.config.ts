@@ -10,6 +10,8 @@ import { Copies } from '../copies/entities/copy.entity';
 import { Like } from '../likes/entities/like.entity';
 import { Rating } from '../ratings/entities/rating.entity';
 import { Share } from '../shares/entities/share.entity';
+import { UserFollowsSchema1758480000000 } from '../migrations/userFollowsSchema';
+import { Follow } from '../user/entities/follow.entity';
 
 config();
 
@@ -24,6 +26,10 @@ export default new DataSource({
   database: configService.get<string>('DB_NAME'),
   logging: configService.get<boolean>('DB_LOGGING'),
   ssl: true,
-  entities: [User, Post, Category, Copies, Like, Rating, Share],
-  migrations: [InitialSchema1758471223836, PostsSchema1758475550000],
+  entities: [User, Post, Category, Copies, Like, Rating, Share, Follow],
+  migrations: [
+    InitialSchema1758471223836,
+    PostsSchema1758475550000,
+    UserFollowsSchema1758480000000,
+  ],
 });

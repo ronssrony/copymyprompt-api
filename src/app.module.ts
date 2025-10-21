@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { Follow } from './user/entities/follow.entity';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PostsModule } from './posts/posts.module';
@@ -47,7 +48,7 @@ import { JwtModule } from '@nestjs/jwt';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         logging: configService.get('NODE_ENV') === 'development',
-        entities: [User, Post, Category, Copies, Like, Rating, Share],
+        entities: [User, Post, Category, Copies, Like, Rating, Share, Follow],
         // Add SSL configuration for production
         ssl: true,
         // Add connection options for production

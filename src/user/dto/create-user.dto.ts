@@ -21,6 +21,10 @@ export class CreateUserDto {
   @MaxLength(500)
   image?: string;
 
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
   @IsNotEmpty()
   @IsString()
   @MaxLength(50)

@@ -4,11 +4,13 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
+import { Like } from '../likes/entities/like.entity';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post) private postRepository: Repository<Post>,
+    @InjectRepository(Like) private likeRepository: Repository<Like>,
   ) {}
 
   private readonly selectFields = {
@@ -79,7 +81,7 @@ export class PostsService {
     let where = {};
     let order = {};
     const take = 12;
-    console.log('Getting posts by type', type);
+
     if (type === 'featured') {
       order = { copiesCount: 'DESC', createdAt: 'DESC' };
     } else if (type === 'trending') {
@@ -101,7 +103,6 @@ export class PostsService {
       relations: ['user', 'category'],
       select: this.selectFields,
     });
-    console.log('posts', posts);
     return { data: posts };
   }
 
@@ -120,5 +121,38 @@ export class PostsService {
 
   remove(id: number) {
     return `This action removes a #${id} post`;
+  }
+
+  async getLikedPosts(userId: string) {
+    const likes = await this.likeRepository.find({
+      where: { user: { id: parseInt(userId) } },
+      relations: ['post', 'post.user', 'post.category'],
+      order: { createdAt: 'DESC' },
+    });
+
+    const posts = likes.map((like) => ({
+      id: like.post.id,
+      title: like.post.title,
+      prompt: like.post.prompt,
+      image: like.post.image,
+      price: like.post.price,
+      model: like.post.model,
+      likesCount: like.post.likesCount,
+      sharesCount: like.post.sharesCount,
+      copiesCount: like.post.copiesCount,
+      ratingsCount: like.post.ratingsCount,
+      ratingsValue: like.post.ratingsValue,
+      createdAt: like.post.createdAt,
+      user: {
+        username: like.post.user.username,
+        image: like.post.user.image,
+      },
+      category: {
+        name: like.post.category.name,
+      },
+      likedAt: like.createdAt,
+    }));
+
+    return { data: posts };
   }
 }

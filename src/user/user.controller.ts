@@ -8,10 +8,14 @@ import {
   ParseIntPipe,
   Query,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { AuthGuard } from '../guards/auth.guard';
+import { UserId } from '../decoretors/userId.decorator';
 
 @Controller('users')
 export class UserController {
@@ -40,22 +44,109 @@ export class UserController {
     }
     return this.userService.findAll();
   }
-
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.findOne(id);
+  @UseGuards(AuthGuard)
+  @Get()
+  findOne(@UserId() userId: number) {
+    return this.userService.findOne(userId);
   }
 
-  @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
+  @UseGuards(AuthGuard)
+  @Put()
+  update(@UserId() userId: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(userId, updateUserDto);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete()
+  remove(@UserId() userId: number) {
+    return this.userService.remove(userId);
+  }
+
+  // POST /users/follow/:userId - Follow a user (protected)
+  @UseGuards(AuthGuard)
+  @Post('follow/:userId')
+  followUser(
+    @UserId() currentUserId: string,
+    @Param('userId', ParseIntPipe) userId: number,
   ) {
-    return this.userService.update(id, updateUserDto);
+    return this.userService.followUser(parseInt(currentUserId), userId);
   }
 
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.remove(id);
+  // DELETE /users/unfollow/:userId - Unfollow a user (protected)
+  @UseGuards(AuthGuard)
+  @Delete('unfollow/:userId')
+  unfollowUser(
+    @UserId() currentUserId: string,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.userService.unfollowUser(parseInt(currentUserId), userId);
+  }
+
+  // GET /users/following - Get users the current user is following (protected)
+  @UseGuards(AuthGuard)
+  @Get('following')
+  getFollowing(@UserId() userId: string) {
+    console.log('following user id', userId);
+    return this.userService.getFollowing(parseInt(userId));
+  }
+
+  // GET /users/followers - Get current user's followers (protected)
+  @UseGuards(AuthGuard)
+  @Get('followers')
+  getFollowers(@UserId() userId: string) {
+    return this.userService.getFollowers(parseInt(userId));
+  }
+
+  // GET /users/check-following/:userId - Check if following a user (protected)
+  @UseGuards(AuthGuard)
+  @Get('check-following/:userId')
+  checkFollowing(
+    @UserId() currentUserId: string,
+    @Param('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.userService.checkFollowing(parseInt(currentUserId), userId);
+  }
+
+  // GET /users/profile/:userId - Get user profile
+  @Get('profile/:userId')
+  getProfile(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('currentUserId') currentUserId?: string,
+  ) {
+    const currentUserIdNum = currentUserId
+      ? parseInt(currentUserId)
+      : undefined;
+    return this.userService.getProfile(userId, currentUserIdNum);
+  }
+
+  // PATCH /users/profile - Update current user's profile (protected)
+  // Added: 2025-10-21
+  @UseGuards(AuthGuard)
+  @Put('profile')
+  updateProfile(
+    @UserId() userId: string,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.userService.updateProfile(parseInt(userId), updateProfileDto);
+  }
+
+  // GET /users/top-creators - Get top creators
+  // Added: 2025-10-21
+  @Get('top-creators')
+  getTopCreators(@Query('sortBy') sortBy?: 'posts' | 'followers' | 'copies') {
+    return this.userService.getTopCreators(sortBy || 'posts');
+  }
+
+  // GET /users/:userId/posts - Get user profile with all their posts
+  // Added: 2025-10-21
+  @Get(':userId/posts')
+  getProfileWithPosts(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Query('currentUserId') currentUserId?: string,
+  ) {
+    const currentUserIdNum = currentUserId
+      ? parseInt(currentUserId)
+      : undefined;
+    return this.userService.getProfileWithPosts(userId, currentUserIdNum);
   }
 }

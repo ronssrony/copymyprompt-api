@@ -25,6 +25,15 @@ export class User {
   @Column({ length: 50 })
   source: string;
 
+  @Column({ type: 'text', nullable: true })
+  bio: string;
+
+  @Column({ type: 'int', default: 0 })
+  followingCount: number;
+
+  @Column({ type: 'int', default: 0 })
+  followersCount: number;
+
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
 

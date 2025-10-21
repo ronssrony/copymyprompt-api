@@ -32,7 +32,6 @@ export class AuthService {
     };
   }
   generateToken(userId: string | undefined) {
-    console.log('register userId', userId);
     return this.jwtService.sign(
       { userId },
       { expiresIn: configuration().jwt.expiresIn },
