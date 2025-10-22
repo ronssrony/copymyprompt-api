@@ -27,6 +27,7 @@ export class PostsService {
     ratingsValue: true,
     createdAt: true,
     user: {
+      id: true,
       username: true,
       image: true,
     },

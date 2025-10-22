@@ -33,7 +33,6 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Get('my-posts')
   myPost(@UserId() userId: string) {
-
     return this.postsService.myPost(userId);
   }
 
