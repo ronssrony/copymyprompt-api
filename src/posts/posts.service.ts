@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository, In } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { Like } from '../likes/entities/like.entity';
+import { Follow } from '../user/entities/follow.entity';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post) private postRepository: Repository<Post>,
     @InjectRepository(Like) private likeRepository: Repository<Like>,
+    @InjectRepository(Follow) private followRepository: Repository<Follow>,
   ) {}
 
   private readonly selectFields = {
@@ -49,11 +51,50 @@ export class PostsService {
     return { data: createdPost };
   }
 
-  async findAll() {
+  async findAll(filter?: 'new' | 'popular' | 'following', userId?: number) {
+    let order = {};
+    let where = {};
+
+    // Handle different filters
+    if (filter === 'new') {
+      // Show newest posts first (this is the default behavior)
+      order = { createdAt: 'DESC' };
+    } else if (filter === 'popular') {
+      // Show posts sorted by highest copies count first
+      order = { copiesCount: 'DESC', createdAt: 'DESC' };
+    } else if (filter === 'following') {
+      // Show posts only from users that the userId is following
+      if (!userId) {
+        // If no userId provided for following filter, return empty array
+        return { data: [] };
+      }
+
+      // Get list of users that the current user is following
+      const follows = await this.followRepository.find({
+        where: { follower: { id: userId } },
+        relations: ['following'],
+      });
+
+      const followingUserIds = follows.map((follow) => follow.following.id);
+
+      // If not following anyone, return empty array
+      if (followingUserIds.length === 0) {
+        return { data: [] };
+      }
+
+      // Filter posts to only show from followed users
+      where = { user: { id: In(followingUserIds) } };
+      order = { createdAt: 'DESC' };
+    } else {
+      // Default: newest posts first
+      order = { createdAt: 'DESC' };
+    }
+
     const posts = await this.postRepository.find({
+      where,
       relations: ['user', 'category'],
       select: this.selectFields,
-      order: { createdAt: 'DESC' },
+      order,
     });
     return { data: posts };
   }

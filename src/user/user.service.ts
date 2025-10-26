@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -448,5 +448,108 @@ export class UserService {
 
     // No currentUserId provided (not logged in)
     return { data: profile };
+  }
+
+  // Get all creators with their posts (only creators who have posts)
+  // Added: 2025-10-26
+  async getCreatorsWithPosts() {
+    // Step 1: Get user IDs who have posts, sorted by post count
+    const userIdsWithPostCount = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.posts', 'post')
+      .select('user.id', 'userId')
+      .addSelect('COUNT(post.id)', 'postsCount')
+      .groupBy('user.id')
+      .having('COUNT(post.id) > 0')
+      .orderBy('COUNT(post.id)', 'DESC')
+      .getRawMany();
+
+    // Extract user IDs
+    const userIds = userIdsWithPostCount.map(
+      (row: { userId: number }) => row.userId,
+    );
+
+    if (userIds.length === 0) {
+      return { data: [] };
+    }
+
+    // Step 2: Fetch full user data with their relations
+    const usersData = await this.userRepository.find({
+      where: { id: In(userIds) },
+      select: {
+        id: true,
+        username: true,
+        image: true,
+        bio: true,
+        followersCount: true,
+        followingCount: true,
+      },
+    });
+
+    // Step 3: Fetch all posts for these users with relations
+    const allPosts = await this.postRepository.find({
+      where: { user: { id: In(userIds) } },
+      relations: ['user', 'category'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // Step 4: Group posts by user and format the response
+    const creatorsWithPosts = userIds
+      .map((userId) => {
+        const user = usersData.find((u) => u.id === userId);
+        if (!user) return null;
+
+        // Get all posts for this user and take only the 4 most recent
+        const userPosts = allPosts
+          .filter((post) => post.user.id === userId)
+          .slice(0, 4);
+
+        // Calculate total copies from ALL posts (not just the 4 shown)
+        const allUserPosts = allPosts.filter((post) => post.user.id === userId);
+        const totalCopies = allUserPosts.reduce(
+          (sum, post) => sum + post.copiesCount,
+          0,
+        );
+
+        // Format posts to match the standard post structure
+        const formattedPosts = userPosts.map((post) => ({
+          id: post.id,
+          title: post.title,
+          prompt: post.prompt,
+          image: post.image,
+          price: post.price,
+          model: post.model,
+          likesCount: post.likesCount,
+          sharesCount: post.sharesCount,
+          copiesCount: post.copiesCount,
+          ratingsCount: post.ratingsCount,
+          ratingsValue: post.ratingsValue,
+          createdAt: post.createdAt,
+          user: {
+            username: post.user.username,
+            image: post.user.image,
+          },
+          category: {
+            name: post.category.name,
+          },
+        }));
+
+        return {
+          user: {
+            id: user.id,
+            username: user.username,
+            image: user.image,
+            bio: user.bio,
+            followersCount: user.followersCount,
+            followingCount: user.followingCount,
+            postsCount: allUserPosts.length,
+            totalCopies,
+          },
+          posts: formattedPosts,
+        };
+      })
+      .filter((creator) => creator !== null);
+
+    return { data: creatorsWithPosts };
   }
 }

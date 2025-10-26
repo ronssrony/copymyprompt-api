@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -26,8 +27,11 @@ export class PostsController {
   }
 
   @Get()
-  findAll() {
-    return this.postsService.findAll();
+  findAll(
+    @Query('filter') filter?: 'new' | 'popular' | 'following',
+    @Query('userId') userId?: string,
+  ) {
+    return this.postsService.findAll(filter, userId ? parseInt(userId) : undefined);
   }
 
   @UseGuards(AuthGuard)

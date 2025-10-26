@@ -144,6 +144,13 @@ export class UserController {
     return this.userService.getTopCreators(sortBy || 'posts');
   }
 
+  // GET /users/creators-with-posts - Get all creators with their posts
+  // Added: 2025-10-26
+  @Get('creators-with-posts')
+  getCreatorsWithPosts() {
+    return this.userService.getCreatorsWithPosts();
+  }
+
   // GET /users/:userId/posts - Get user profile with all their posts
   // Added: 2025-10-21
   @Get(':userId/posts')

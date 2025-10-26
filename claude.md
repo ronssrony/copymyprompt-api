@@ -133,7 +133,20 @@ Authorization: Bearer <token>
 ```
 
 #### GET /posts
-Get all posts (public).
+Get all posts (public). Supports filtering.
+
+**Query Parameters (optional):**
+- `filter`: `new`, `popular`, or `following`
+  - `new`: Returns newest posts first (default behavior)
+  - `popular`: Returns posts sorted by highest copies count
+  - `following`: Returns posts only from users that the userId is following
+- `userId`: Required when `filter=following`, otherwise optional
+
+**Examples:**
+- `GET /posts` - Returns all posts, newest first
+- `GET /posts?filter=new` - Returns newest posts first
+- `GET /posts?filter=popular` - Returns posts sorted by copies count
+- `GET /posts?filter=following&userId=1` - Returns posts from users that user 1 is following
 
 **Response:**
 ```json
@@ -1201,6 +1214,66 @@ Get top creators based on different criteria. (Added: 2025-10-21)
 - `GET /users/top-creators?sortBy=followers` - Returns top 10 creators by followers
 - `GET /users/top-creators?sortBy=copies` - Returns top 10 creators by total copies
 
+#### GET /users/creators-with-posts
+Get all creators with their posts (only creators who have posts). (Added: 2025-10-26)
+
+**Description:**
+Returns all users who have created at least one post, sorted by number of posts (highest to lowest). Each creator includes their user information and up to 4 of their most recent posts.
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "user": {
+        "id": 1,
+        "username": "top_creator",
+        "image": "https://...",
+        "bio": "Professional prompt creator",
+        "followersCount": 1500,
+        "followingCount": 200,
+        "postsCount": 125,
+        "totalCopies": 3420
+      },
+      "posts": [
+        {
+          "id": 1,
+          "title": "Marketing Prompt",
+          "prompt": "Create a compelling...",
+          "image": "https://...",
+          "price": 0,
+          "model": "gpt-4",
+          "likesCount": 42,
+          "sharesCount": 15,
+          "copiesCount": 28,
+          "ratingsCount": 10,
+          "ratingsValue": 48,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "user": {
+            "username": "top_creator",
+            "image": "https://..."
+          },
+          "category": {
+            "name": "Marketing"
+          }
+        }
+        // ... up to 3 more recent posts (4 total max)
+      ]
+    }
+    // ... more creators
+  ]
+}
+```
+
+**Notes:**
+- Users without any posts are excluded from the results
+- Creators are sorted by number of posts (highest first)
+- **Only the 4 most recent posts** per creator are included in the `posts` array
+- `postsCount` reflects the total number of posts the creator has (not just the 4 shown)
+- `totalCopies` reflects the total copies from ALL posts (not just the 4 shown)
+- Post data format matches the standard post structure from `GET /posts`
+- User data format matches the structure from `GET /users/top-creators`
+
 #### GET /users/:userId/posts
 Get user profile with all their posts. (Added: 2025-10-21)
 
@@ -1765,6 +1838,188 @@ const UserProfileWithPosts = ({ userId }) => {
 };
 ```
 
+#### Example: Fetch Posts with Filters (Added: 2025-10-26)
+
+```javascript
+const PostsWithFilters = () => {
+  const [posts, setPosts] = useState([]);
+  const [filter, setFilter] = useState('new'); // 'new', 'popular', 'following'
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        let url = `http://localhost:3000/posts?filter=${filter}`;
+
+        // If filter is 'following', include userId
+        if (filter === 'following') {
+          const currentUserId = getCurrentUserId(); // Your auth function
+          url += `&userId=${currentUserId}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+        setPosts(data.data);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [filter]);
+
+  return (
+    <div className="posts-container">
+      <div className="filter-buttons">
+        <button
+          onClick={() => setFilter('new')}
+          className={filter === 'new' ? 'active' : ''}
+        >
+          New
+        </button>
+        <button
+          onClick={() => setFilter('popular')}
+          className={filter === 'popular' ? 'active' : ''}
+        >
+          Popular
+        </button>
+        <button
+          onClick={() => setFilter('following')}
+          className={filter === 'following' ? 'active' : ''}
+        >
+          Following
+        </button>
+      </div>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="posts-grid">
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
+
+      {!loading && posts.length === 0 && filter === 'following' && (
+        <p>No posts from users you're following yet. Start following creators!</p>
+      )}
+    </div>
+  );
+};
+```
+
+#### Example: Display All Creators with Posts (Added: 2025-10-26)
+
+```javascript
+const CreatorsWithPosts = () => {
+  const [creators, setCreators] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedCreator, setExpandedCreator] = useState(null);
+
+  useEffect(() => {
+    const fetchCreators = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/users/creators-with-posts');
+        const data = await response.json();
+        setCreators(data.data);
+      } catch (error) {
+        console.error('Error fetching creators:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCreators();
+  }, []);
+
+  if (loading) return <div>Loading creators...</div>;
+
+  const averageRating = (post) =>
+    post.ratingsCount > 0
+      ? (post.ratingsValue / post.ratingsCount).toFixed(1)
+      : 0;
+
+  return (
+    <div className="creators-container">
+      <h1>All Creators</h1>
+
+      {creators.map((creator, index) => (
+        <div key={creator.user.id} className="creator-section">
+          {/* Creator Info */}
+          <div className="creator-header">
+            <span className="rank">#{index + 1}</span>
+            <img
+              src={creator.user.image}
+              alt={creator.user.username}
+              className="creator-avatar"
+            />
+            <div className="creator-info">
+              <h2>{creator.user.username}</h2>
+              <p>{creator.user.bio}</p>
+
+              <div className="creator-stats">
+                <span>{creator.user.postsCount} posts</span>
+                <span>{creator.user.followersCount} followers</span>
+                <span>{creator.user.totalCopies} total copies</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setExpandedCreator(
+                expandedCreator === creator.user.id ? null : creator.user.id
+              )}
+            >
+              {expandedCreator === creator.user.id ? 'Hide Posts' : 'Show Posts'}
+            </button>
+          </div>
+
+          {/* Creator's Posts (expandable) */}
+          {expandedCreator === creator.user.id && (
+            <div className="creator-posts">
+              <h3>Posts by {creator.user.username}</h3>
+              <p className="posts-note">
+                Showing {creator.posts.length} of {creator.user.postsCount} posts
+              </p>
+              <div className="posts-grid">
+                {/* Each creator includes up to 4 most recent posts */}
+                {creator.posts.map((post) => (
+                  <div key={post.id} className="post-card">
+                    <img src={post.image} alt={post.title} />
+                    <h4>{post.title}</h4>
+                    <p className="prompt-preview">
+                      {post.prompt.substring(0, 100)}...
+                    </p>
+                    <span className="category">{post.category.name}</span>
+
+                    <div className="post-stats">
+                      <span>❤️ {post.likesCount}</span>
+                      <span>📋 {post.copiesCount}</span>
+                      <span>⭐ {averageRating(post)}</span>
+                    </div>
+
+                    <small>
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </small>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {creators.length === 0 && (
+        <p>No creators with posts found.</p>
+      )}
+    </div>
+  );
+};
+```
+
 ---
 
 ## Summary of Endpoints
@@ -1773,7 +2028,7 @@ const UserProfileWithPosts = ({ userId }) => {
 |--------|----------|------|-------------|
 | **Posts** |
 | POST | /posts | ✅ | Create post |
-| GET | /posts | ❌ | Get all posts |
+| GET | /posts | ❌ | Get all posts (supports filter: new/popular/following) |
 | GET | /posts/:id | ❌ | Get single post |
 | GET | /posts/my-posts | ✅ | Get user's posts |
 | GET | /posts/liked-posts | ✅ | Get user's liked posts |
@@ -1819,6 +2074,7 @@ const UserProfileWithPosts = ({ userId }) => {
 | GET | /users/profile/:userId | ❌ | Get user profile |
 | PUT | /users/profile | ✅ | Update current user's profile |
 | GET | /users/top-creators | ❌ | Get top creators (by posts/followers/copies) |
+| GET | /users/creators-with-posts | ❌ | Get all creators with their posts |
 | GET | /users/:userId/posts | ❌ | Get user profile with all posts |
 
 ---
