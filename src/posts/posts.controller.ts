@@ -30,8 +30,13 @@ export class PostsController {
   findAll(
     @Query('filter') filter?: 'new' | 'popular' | 'following',
     @Query('userId') userId?: string,
+    @Query('categoryId') categoryId?: string,
   ) {
-    return this.postsService.findAll(filter, userId ? parseInt(userId) : undefined);
+    return this.postsService.findAll(
+      filter,
+      userId ? parseInt(userId) : undefined,
+      categoryId ? parseInt(categoryId) : undefined,
+    );
   }
 
   @UseGuards(AuthGuard)

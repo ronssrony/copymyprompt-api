@@ -51,9 +51,13 @@ export class PostsService {
     return { data: createdPost };
   }
 
-  async findAll(filter?: 'new' | 'popular' | 'following', userId?: number) {
-    let order = {};
-    let where = {};
+  async findAll(
+    filter?: 'new' | 'popular' | 'following',
+    userId?: number,
+    categoryId?: number,
+  ) {
+    let order: any = {};
+    let where: any = {};
 
     // Handle different filters
     if (filter === 'new') {
@@ -70,10 +74,11 @@ export class PostsService {
       }
 
       // Get list of users that the current user is following
-      const follows = await this.followRepository.find({
-        where: { follower: { id: userId } },
-        relations: ['following'],
-      });
+      const follows = await this.followRepository
+        .createQueryBuilder('follow')
+        .where('follow.followerId = :userId', { userId })
+        .leftJoinAndSelect('follow.following', 'following')
+        .getMany();
 
       const followingUserIds = follows.map((follow) => follow.following.id);
 
@@ -88,6 +93,11 @@ export class PostsService {
     } else {
       // Default: newest posts first
       order = { createdAt: 'DESC' };
+    }
+
+    // Add category filter if categoryId is provided
+    if (categoryId) {
+      where = { ...where, category: { id: categoryId } };
     }
 
     const posts = await this.postRepository.find({
